@@ -23,7 +23,7 @@ view: pricing_mapping {
 
   dimension: marketplace_purchase {
     type: yesno
-    label: "Is Marketplace Purchase? (Yes/No)"
+    label: "Is Marketplace Purchase?"
     sql:   ${category} = "Marketplace Services";;
   }
 }
