@@ -1,13 +1,20 @@
 view: gcp_billing_export {
   view_label: "Billing"
   derived_table: {
-    partition_keys: ["usage_start_time"]
-    # cluster_keys: ["project.id"]
-    datagroup_trigger: billing_datagroup
-    increment_key: "export_date"
-    increment_offset: 0
-    sql: select *, generate_uuid() as pk from `@{BILLING_TABLE}`
-    WHERE {% incrementcondition %} export_time {% endincrementcondition %};;
+    partition_keys: ["partition_date"]
+    cluster_keys: ["usage_start_time", "service_description", "sku_description", "project_name"]
+    datagroup_trigger: daily_datagroup
+    increment_key: "partition_date"
+    increment_offset: 1
+    sql: select *, 
+    generate_uuid() as pk, 
+    _PARTITIONTIME as partition_date, 
+    service.description as service_description, 
+    sku.description as sku_description, 
+    project.name as project_name,  
+    DATE(usage_start_time) as usage_start_date
+    from `@{BILLING_TABLE}`
+    WHERE {% incrementcondition %} _PARTITIONDATE {% endincrementcondition %};;
   }
 
   dimension: pk {
@@ -137,10 +144,28 @@ view: gcp_billing_export {
 
   dimension: invoice_month {
     type: string
+    hidden: yes
     sql: ${TABLE}.invoice.month ;;
     # group_label: "Invoice"
     # group_item_label: "Month"
   }
+
+ dimension_group: invoice_month {
+      label: "Invoice"
+      type: time
+      datatype: date
+      timeframes: [
+        month,
+        quarter
+      ]
+      sql: date(CAST(substring(${TABLE}.invoice.month,1,4) AS int),CAST(substring(${TABLE}.invoice.month,5,2) AS int),01);;
+    }
+
+    dimension: gcp_org_id {
+      label: "GCP Org ID"
+      type: string
+      sql: REGEXP_EXTRACT( ${project__ancestry_numbers},"^/([0-9]+)") ;;
+    }
 
   dimension: labels {
     hidden: yes
@@ -368,18 +393,25 @@ view: gcp_billing_export {
   measure: total_cost {
     type: sum
     sql: ${cost} ;;
-    value_format: "#,##0.00"
-    html: <a href="#drillmenu" target="_self">{{ currency_symbol._value }}{{ rendered_value }}</a>;;
+    value_format_name: usd_0
+    #html: <a href="#drillmenu" target="_self">{{ currency_symbol._value }}{{ rendered_value }}</a>;;
     drill_fields: [project__name,service__description,total_cost]
   }
 
   measure: total_net_cost {
     type: number
     sql: ${total_cost} - ${gcp_billing_export__credits.total_amount};;
-    value_format: "#,##0.00"
-    html: <a href="#drillmenu" target="_self">{{ currency_symbol._value }}{{ rendered_value }}</a>;;
+    value_format_name: usd_0
+    #html: <a href="#drillmenu" target="_self">{{ currency_symbol._value }}{{ rendered_value }}</a>;;
     drill_fields: [project__name,service__description,total_cost, gcp_billing_export__credits.total_amount]
   }
+
+  measure: total_marketplace_cost {
+    type: sum
+    value_format_name: usd_0
+    filters: [pricing_mapping.marketplace_purchase: "Yes"]
+    sql: ${cost} ;;
+   }
 
 
 }
@@ -441,8 +473,8 @@ view: gcp_billing_export__credits {
   measure: total_amount {
     label: "Total Credit Amount"
     type: sum
-    value_format: "#,##0.00"
-    html: <a href="#drillmenu" target="_self">{{ gcp_billing_export.currency_symbol._value }}{{ rendered_value }}</a>;;
+    value_format_name: usd_0
+    #html: <a href="#drillmenu" target="_self">{{ gcp_billing_export.currency_symbol._value }}{{ rendered_value }}</a>;;
     sql: -1*${amount} ;;
     drill_fields: [gcp_billing_export__credits.type,gcp_billing_export__credits.total_amount]
   }
@@ -450,8 +482,8 @@ view: gcp_billing_export__credits {
   measure: total_sustained_use_discount {
     view_label: "Credits"
     type: sum
-    value_format: "#,##0.00"
-    html: <a href="#drillmenu" target="_self">{{ gcp_billing_export.currency_symbol._value }}{{ rendered_value }}</a>;;
+    value_format_name: usd_0
+    #html: <a href="#drillmenu" target="_self">{{ gcp_billing_export.currency_symbol._value }}{{ rendered_value }}</a>;;
     sql: -1*${amount} ;;
     filters: [gcp_billing_export__credits.type: "SUSTAINED_USAGE_DISCOUNT"]
     drill_fields: [gcp_billing_export__credits.id,gcp_billing_export__credits.name,total_amount]
@@ -460,8 +492,8 @@ view: gcp_billing_export__credits {
   measure: total_committed_use_discount {
     view_label: "Credits"
     type: sum
-    value_format: "#,##0.00"
-    html: <a href="#drillmenu" target="_self">{{ gcp_billing_export.currency_symbol._value }}{{ rendered_value }}</a>;;
+    value_format_name: usd_0
+    #html: <a href="#drillmenu" target="_self">{{ gcp_billing_export.currency_symbol._value }}{{ rendered_value }}</a>;;
     sql: -1*${amount} ;;
     filters: [gcp_billing_export__credits.type: "COMMITTED_USAGE_DISCOUNT, COMMITTED_USAGE_DISCOUNT_DOLLAR_BASE"]
     drill_fields: [gcp_billing_export__credits.id,gcp_billing_export__credits.name,total_amount]
@@ -470,8 +502,8 @@ view: gcp_billing_export__credits {
   measure: total_promotional_credit {
     view_label: "Credits"
     type: sum
-    value_format: "#,##0.00"
-    html: <a href="#drillmenu" target="_self">{{ gcp_billing_export.currency_symbol._value }}{{ rendered_value }}</a>;;
+    value_format_name: usd_0
+    #html: <a href="#drillmenu" target="_self">{{ gcp_billing_export.currency_symbol._value }}{{ rendered_value }}</a>;;
     sql: -1*${amount} ;;
     filters: [gcp_billing_export__credits.type: "PROMOTION"]
     drill_fields: [gcp_billing_export__credits.id,gcp_billing_export__credits.name,total_amount]
