@@ -1,4 +1,4 @@
-view: quota_metrics_v5 {
+view: quota_metrics {
   label: "Quota Metrics"
 
   derived_table: {
