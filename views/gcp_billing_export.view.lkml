@@ -2,19 +2,46 @@ view: gcp_billing_export {
   view_label: "Billing"
   derived_table: {
     partition_keys: ["partition_date"]
-    cluster_keys: ["usage_start_time", "service_description", "sku_description", "project_name"]
+    #When using multiple billing accounts use the below partition key
+    #partition_keys: ["usage_start_time"]
+    cluster_keys: ["usage_start_time", "service_description", "sku_description", "project_name", "invoice_date"]
     datagroup_trigger: daily_datagroup
     increment_key: "partition_date"
+    #When using multiple billing accounts use the below increment key and increment offset
+    #increment_key: "usage_start_date"
+    #increment_offset: 45
+    #45 days becuase tax does not flow into the dataset until 30-35 days after the usage date
     increment_offset: 1
     sql: select *, 
     generate_uuid() as pk, 
+    -- Dont need partition_date when using multiple billing accounts 
     _PARTITIONTIME as partition_date, 
     service.description as service_description, 
     sku.description as sku_description, 
     project.name as project_name,  
+    date(CAST(substring(invoice.month,1,4) AS int),CAST(substring(invoice.month,5,2) AS int),01) as invoice_date,
+    -- The following code is for unnesting labels within the PDT
+    (SELECT value FROM UNNEST(billing_export.project.labels) WHERE key = 'test') AS gcp_billing_export_project_test,
+    (SELECT value FROM UNNEST(billing_export.labels) WHERE key = 'test') AS gcp_billing_export_resource_test,
+    -- Dont need usage_start_date when using multiple billing accounts 
     DATE(usage_start_time) as usage_start_date
-    from `@{BILLING_TABLE}`
+    -- Adding alias for unnesting labels in PDT 
+    from `@{BILLING_TABLE}` as billing_export 
+    -- Use the following where clause when using multiple billing accounts 
+    -- WHERE {% incrementcondition %} usage_start_time {% endincrementcondition %};;
     WHERE {% incrementcondition %} _PARTITIONDATE {% endincrementcondition %};;
+  }
+
+  dimension: project_test {
+    type: string
+    group_label: "Labels"
+    sql: ${TABLE}.gcp_billing_export_project_test ;;
+  }
+
+  dimension: resource_test {
+    type: string
+    group_label: "Labels"
+    sql: ${TABLE}.gcp_billing_export_resource_test ;;
   }
 
   dimension: pk {
@@ -88,6 +115,7 @@ view: gcp_billing_export {
 
   dimension: billing_account_id {
     type: string
+    label: "Billing Account ID"
     sql: ${TABLE}.billing_account_id ;;
   }
   
@@ -146,8 +174,6 @@ view: gcp_billing_export {
     type: string
     hidden: yes
     sql: ${TABLE}.invoice.month ;;
-    # group_label: "Invoice"
-    # group_item_label: "Month"
   }
 
  dimension_group: invoice_month {
@@ -158,7 +184,9 @@ view: gcp_billing_export {
         month,
         quarter
       ]
-      sql: date(CAST(substring(${TABLE}.invoice.month,1,4) AS int),CAST(substring(${TABLE}.invoice.month,5,2) AS int),01);;
+      #Using this becuase of computation in PDT  
+      sql: ${TABLE}.invoice_date ;;
+      #sql: date(CAST(substring(${TABLE}.invoice.month,1,4) AS int),CAST(substring(${TABLE}.invoice.month,5,2) AS int),01);;
     }
 
     dimension: gcp_org_id {
@@ -209,6 +237,7 @@ view: gcp_billing_export {
 
   dimension: project__id {
     type: string
+    # The code below sometimes fannouts customer data 
     #sql: COALESCE(IF(${service__description} = 'Support', 'Support', ${TABLE}.project.id),"Unknown") ;;
     sql: ${TABLE}.project.id ;;
     group_label: "Project"
