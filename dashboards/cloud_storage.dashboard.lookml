@@ -1,14 +1,15 @@
-- dashboard: cloud_storage_insights
-  title: Cloud Storage Insights
+- dashboard: cloud_storage_insights_suggested
+  title: Cloud Storage Insights (Suggested)
   layout: newspaper
   preferred_viewer: dashboards-next
+  description: ''
+  preferred_slug: woUQI33YbnkmmVk42VDUBX
   elements:
   - name: <strong><font color="#000000 " size="6" weight="bold">Cloud Storage Cost
       Insights</font><strong>
     type: text
     title_text: <strong><font color="#000000 " size="6" weight="bold">Cloud Storage
       Cost Insights</font><strong>
-    subtitle_text: ''
     body_text: ''
     row: 0
     col: 4
@@ -17,7 +18,6 @@
   - name: 'Data Retrieval: Usage and Cost Insights'
     type: text
     title_text: 'Data Retrieval: Usage and Cost Insights'
-    subtitle_text: ''
     body_text: "​Because Nearline, Coldline, and Archive Storage are intended for\
       \ storing infrequently accessed data, there are additional costs associated\
       \ with retrieving data or metadata stored in these classes. Make sure to keep\
@@ -32,7 +32,6 @@
   - name: ''
     type: text
     title_text: ''
-    subtitle_text: ''
     body_text: "<img src='https://cloud.google.com/images/social-icon-google-cloud-1200-630.png'\
       \ width = '100%' >"
     row: 0
@@ -42,7 +41,6 @@
   - name: 'Data Operations: Usage and Cost Insights'
     type: text
     title_text: 'Data Operations: Usage and Cost Insights'
-    subtitle_text: ''
     body_text: "​[Operation charges](https://cloud.google.com/storage/pricing#operations-pricing)\
       \ apply when you perform operations within Cloud Storage. An operation is an\
       \ action that makes changes to or retrieves information about buckets and objects\
@@ -55,7 +53,6 @@
   - name: 'Cloud Storage: Usage and Cost Insights'
     type: text
     title_text: 'Cloud Storage: Usage and Cost Insights'
-    subtitle_text: ''
     body_text: 'Save costs without sacrificing performance by storing data across
       different storage classes ([Standard](https://cloud.google.com/storage/docs/storage-classes#standard),
       [Nearline](https://cloud.google.com/storage/docs/storage-classes#nearline),
@@ -73,7 +70,6 @@
   - name: 'Early Deletes: Usage and C​ost Insights'
     type: text
     title_text: 'Early Deletes: Usage and C​ost Insights'
-    subtitle_text: ''
     body_text: "​​Because Nearline, Coldline, and Archive Storage are intended for\
       \ storing infrequently accessed data, there are additional costs associated\
       \ with the minimum storage durations that you are charged for. You can delete\
@@ -89,7 +85,6 @@
   - name: 'Network: Usage and Cost Insights'
     type: text
     title_text: 'Network: Usage and Cost Insights'
-    subtitle_text: ''
     body_text: "​[Network usage](https://cloud.google.com/storage/pricing#network-pricing)\
       \ charges apply when object data or object metadata is read from your Cloud\
       \ Storage buckets. Network usage is divided into Network egress, general network\
@@ -163,6 +158,7 @@
     title_hidden: true
     listen:
       Project ID: gcp_billing_export.project__id
+      Usage Start Date: gcp_billing_export.usage_start_date
     row: 6
     col: 0
     width: 12
@@ -229,6 +225,7 @@
     title_hidden: true
     listen:
       Project ID: gcp_billing_export.project__id
+      Usage Start Date: gcp_billing_export.usage_start_date
     row: 16
     col: 0
     width: 12
@@ -295,6 +292,7 @@
     title_hidden: true
     listen:
       Project ID: gcp_billing_export.project__id
+      Usage Start Date: gcp_billing_export.usage_start_date
     row: 26
     col: 0
     width: 12
@@ -361,6 +359,7 @@
     title_hidden: true
     listen:
       Project ID: gcp_billing_export.project__id
+      Usage Start Date: gcp_billing_export.usage_start_date
     row: 36
     col: 0
     width: 12
@@ -427,6 +426,7 @@
     title_hidden: true
     listen:
       Project ID: gcp_billing_export.project__id
+      Usage Start Date: gcp_billing_export.usage_start_date
     row: 46
     col: 0
     width: 12
@@ -493,6 +493,7 @@
     title_hidden: true
     listen:
       Project ID: gcp_billing_export.project__id
+      Usage Start Date: gcp_billing_export.usage_start_date
     row: 16
     col: 12
     width: 12
@@ -559,6 +560,7 @@
     title_hidden: true
     listen:
       Project ID: gcp_billing_export.project__id
+      Usage Start Date: gcp_billing_export.usage_start_date
     row: 6
     col: 12
     width: 12
@@ -625,6 +627,7 @@
     title_hidden: true
     listen:
       Project ID: gcp_billing_export.project__id
+      Usage Start Date: gcp_billing_export.usage_start_date
     row: 26
     col: 12
     width: 12
@@ -691,6 +694,7 @@
     title_hidden: true
     listen:
       Project ID: gcp_billing_export.project__id
+      Usage Start Date: gcp_billing_export.usage_start_date
     row: 46
     col: 12
     width: 12
@@ -757,10 +761,67 @@
     title_hidden: true
     listen:
       Project ID: gcp_billing_export.project__id
+      Usage Start Date: gcp_billing_export.usage_start_date
     row: 36
     col: 12
     width: 12
     height: 7
+  - title: Month Over Month SKUs
+    name: Month Over Month SKUs
+    model: gcp_billing_block
+    explore: gcp_billing_export
+    type: looker_grid
+    fields: [gcp_billing_export.usage_start_month, gcp_billing_export.sku__description,
+      gcp_billing_export.total_cost]
+    pivots: [gcp_billing_export.usage_start_month]
+    fill_fields: [gcp_billing_export.usage_start_month]
+    filters:
+      gcp_billing_export.usage_start_month: 4 months ago for 4 months
+      gcp_billing_export.service__description: Cloud Storage
+    sorts: [gcp_billing_export.usage_start_month, gcp_billing_export.total_cost desc
+        0]
+    limit: 500
+    column_limit: 50
+    dynamic_fields: [{category: table_calculation, label: Percent Change of Previous,
+        value_format: !!null '', value_format_name: percent_0, calculation_type: percent_change_from_previous_column,
+        table_calculation: percent_change_of_previous, args: [gcp_billing_export.total_cost],
+        _kind_hint: measure, _type_hint: number}]
+    show_view_names: false
+    show_row_numbers: true
+    transpose: false
+    truncate_text: true
+    hide_totals: false
+    hide_row_totals: false
+    size_to_fit: true
+    table_theme: white
+    limit_displayed_rows: false
+    enable_conditional_formatting: false
+    header_text_alignment: left
+    header_font_size: 12
+    rows_font_size: 12
+    conditional_formatting_include_totals: false
+    conditional_formatting_include_nulls: false
+    series_types: {}
+    defaults_version: 1
+    hidden_fields: []
+    y_axes: []
+    title_hidden: true
+    listen:
+      Project ID: gcp_billing_export.project__id
+    row: 55
+    col: 0
+    width: 24
+    height: 5
+  - name: " (2)"
+    type: text
+    title_text: ''
+    subtitle_text: ''
+    body_text: '[{"type":"h2","children":[{"text":"Cloud Storage SKUs Month Over Month"}],"align":"center","id":1687796377258}]'
+    rich_content_json: '{"format":"slate"}'
+    row: 54
+    col: 0
+    width: 24
+    height: 1
   filters:
   - name: Project ID
     title: Project ID
@@ -776,3 +837,17 @@
     explore: gcp_billing_export
     listens_to_filters: []
     field: gcp_billing_export.project__id
+  - name: Usage Start Date
+    title: Usage Start Date
+    type: field_filter
+    default_value: 12 month ago for 12 month
+    allow_multiple_values: true
+    required: false
+    ui_config:
+      type: advanced
+      display: popover
+      options: []
+    model: gcp_billing_block
+    explore: gcp_billing_export
+    listens_to_filters: []
+    field: gcp_billing_export.usage_start_date
