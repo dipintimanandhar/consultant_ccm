@@ -283,38 +283,38 @@ view: recommendations_export {
   }
 
   measure: count {
-    hidden: yes
     type: count
   }
 
   measure: total_savings {
     type: sum
     sql: -1*${primary_impact__cost_projection__cost__units} ;;
-    html: <a href="#drillmenu" target="_self">{{ currency_symbol._value }}{{ rendered_value }}</a>;;
-    value_format: "#,##0.00"
+    #html: <a href="#drillmenu" target="_self">{{ currency_symbol._value }}{{ rendered_value }}</a>;;
+    value_format_name: usd_0
     drill_fields: [recommender, priority, project_name, service, category, recommender_subtype, description, last_refresh_date]
   }
 }
 
-# view: recommendations_export__target_resources {
-#   dimension: target_resources {
-#     type: string
-#     description: "Contains the fully qualified resource names for resources changed by the
-#     operations in this recommendation. This field is always populated. ex:
-#     [//cloudresourcemanager.googleapis.com/projects/foo]."
-#     sql: recommendations_export__target_resources ;;
-#   }
+view: recommendations_export__target_resources {
+  dimension: target_resources {
+    type: string
+    description: "Contains the fully qualified resource names for resources changed by the
+    operations in this recommendation. This field is always populated. ex:
+    [//cloudresourcemanager.googleapis.com/projects/foo]."
+    sql: recommendations_export__target_resources ;;
+  }
 
-#   dimension: project_name {
-#     sql: REGEXP_EXTRACT(${target_resources}, r'.*googleapis.com/projects/(.*)/(?:regions|zones)/.*');;
-#   }
-# }
+  dimension: project_name {
+    hidden: yes
+    sql: REGEXP_EXTRACT(${target_resources}, r'.*googleapis.com/projects/(.*)/(?:regions|zones)/.*');;
+  }
+}
 
-# view: recommendations_export__associated_insights {
-#   dimension: recommendations_export__associated_insights {
-#     type: string
-#     description: "Insights associated with this recommendation. A project insight is represented as
-#     projects/[PROJECT_NUMBER]/locations/[LOCATION]/insightTypes/[INSIGHT_TYPE_ID]/insights/[insight_id]"
-#     sql: recommendations_export__associated_insights ;;
-#   }
-# }
+view: recommendations_export__associated_insights {
+  dimension: recommendations_export__associated_insights {
+    type: string
+    description: "Insights associated with this recommendation. A project insight is represented as
+    projects/[PROJECT_NUMBER]/locations/[LOCATION]/insightTypes/[INSIGHT_TYPE_ID]/insights/[insight_id]"
+    sql: recommendations_export__associated_insights ;;
+  }
+}
