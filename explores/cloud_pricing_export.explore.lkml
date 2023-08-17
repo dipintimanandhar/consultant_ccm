@@ -1,3 +1,4 @@
+include: "/views/cloud_pricing_export.view"
 
 explore: cloud_pricing_export {
   label: "Pricing Taxonomy"
@@ -39,4 +40,9 @@ explore: cloud_pricing_export {
     sql: ,UNNEST(${cloud_pricing_export.billing_account_price__tiered_rates}) as cloud_pricing_export__billing_account_price__tiered_rates ;;
     relationship: one_to_many
   }
+}
+
+explore: cloud_pricing {
+  from: cloud_pricing_export
+  hidden: yes
 }
