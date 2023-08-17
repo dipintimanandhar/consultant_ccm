@@ -399,5 +399,3 @@
     explore: recommendations_export
     listens_to_filters: []
     field: recommendations_export.cloud_entity_id
-    listens_to_filters: []
-    field: recommendations_export.cloud_entity_id
