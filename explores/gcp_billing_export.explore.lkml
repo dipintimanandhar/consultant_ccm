@@ -1,4 +1,6 @@
 include: "/views/*.view.lkml"
+include: "/views/pricing_mapping.view"
+include: "/views/cloud_pricing_export.view"
 
 explore: gcp_billing_export {
   label: "Billing"
@@ -25,5 +27,13 @@ explore: gcp_billing_export {
   join: pricing {
     relationship: one_to_one
     sql_on: ${pricing.sku__id} = ${gcp_billing_export.sku__id} ;;
+  }
+
+  join: pricing_mapping {
+    type: left_outer
+    view_label: "Pricing Taxonomy"
+    relationship: one_to_one
+    fields: [pricing_mapping.marketplace_purchase]
+    sql_on: ${pricing_mapping.sku__id} = ${gcp_billing_export.sku__id} ;;
   }
 }
