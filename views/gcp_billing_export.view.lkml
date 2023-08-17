@@ -209,7 +209,8 @@ view: gcp_billing_export {
 
   dimension: project__id {
     type: string
-    sql: COALESCE(IF(${service__description} = 'Support', 'Support', ${TABLE}.project.id),"Unknown") ;;
+    #sql: COALESCE(IF(${service__description} = 'Support', 'Support', ${TABLE}.project.id),"Unknown") ;;
+    sql: ${TABLE}.project.id ;;
     group_label: "Project"
     group_item_label: "ID"
   }
