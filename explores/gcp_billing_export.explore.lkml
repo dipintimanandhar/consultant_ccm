@@ -23,12 +23,10 @@ explore: gcp_billing_export {
     sql:LEFT JOIN UNNEST(${gcp_billing_export.credits}) as gcp_billing_export__credits ;;
     relationship: one_to_many
   }
-
   join: pricing {
     relationship: one_to_one
     sql_on: ${pricing.sku__id} = ${gcp_billing_export.sku__id} ;;
   }
-
   join: pricing_mapping {
     type: left_outer
     view_label: "Pricing Taxonomy"
@@ -53,5 +51,10 @@ explore: gcp_billing_export {
     view_label: "Billing"
     relationship: one_to_one
     sql_on: ${gcp_billing_export.sku__description} = ${top_sku_costs.sku__description} ;;
+  }
+  join: dashboard_links {
+    type: left_outer
+    relationship: one_to_one
+    sql:  ;;
   }
 }
