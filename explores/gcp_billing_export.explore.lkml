@@ -36,4 +36,22 @@ explore: gcp_billing_export {
     fields: [pricing_mapping.marketplace_purchase]
     sql_on: ${pricing_mapping.sku__id} = ${gcp_billing_export.sku__id} ;;
   }
+  join: top_project_costs {
+    type: left_outer
+    view_label: "Billing"
+    relationship: one_to_one
+    sql_on: ${gcp_billing_export.project__name} = ${top_project_costs.project__name} ;;
+  }
+  join: top_service_costs {
+    type: left_outer
+    view_label: "Billing"
+    relationship: one_to_one
+    sql_on: ${gcp_billing_export.service__description} = ${top_service_costs.service__description} ;;
+  }
+  join: top_sku_costs {
+    type: left_outer
+    view_label: "Billing"
+    relationship: one_to_one
+    sql_on: ${gcp_billing_export.sku__description} = ${top_sku_costs.sku__description} ;;
+  }
 }
