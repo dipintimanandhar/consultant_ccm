@@ -50,9 +50,9 @@ view: gcp_billing_export {
     sql: ${TABLE}.pk ;;
   }
 
-  dimension_group: _partitiondate {
-    hidden: yes
+  dimension_group: partititon_filter {
     type: time
+    description: "Use this field to filter on partitions" 
     group_label: "Partition Fields"
     timeframes: [
       raw,
@@ -63,14 +63,14 @@ view: gcp_billing_export {
       year
     ]
     convert_tz: no
-    datatype: date
-    sql: ${TABLE}._PARTITIONDATE ;;
+    datatype: timestamp
+    sql: ${TABLE}.partititon_date ;;
   }
 
-  dimension_group: _partitiontime {
-    description: "Partition column for the table - filter here to leverage partitions"
+  dimension_group: partition {
     group_label: "Partition Fields"
     type: time
+    hidden: yes
     timeframes: [
       raw,
       date,
@@ -80,8 +80,8 @@ view: gcp_billing_export {
       year
     ]
     convert_tz: no
-    datatype: date
-    sql: ${TABLE}._PARTITIONTIME ;;
+    datatype: datetime
+    sql: ${TABLE}.partition_date ;;
   }
 
 
