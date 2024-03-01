@@ -8,7 +8,7 @@ view: quota_metrics {
       rank() over (PARTITION by  project_id,  quota_metric,  region
         ORDER BY  added_at   desc) as rank,
       generate_uuid() as pk
-    from `azdv-finops.quotas.quota_metrics_v5`;;
+    from `TABLE`;;
   datagroup_trigger: daily_datagroup
   }
 
