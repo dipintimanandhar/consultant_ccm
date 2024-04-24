@@ -18,6 +18,13 @@ explore: gcp_billing_export {
     sql:LEFT JOIN UNNEST(${gcp_billing_export.project__labels}) as gcp_billing_export__project__labels ;;
     relationship: one_to_many
   }
+  join: eligible_labels {
+    type:  left_outer
+    view_label: "Billing"
+    fields: [eligible_labels.labeling_supported]
+    relationship:  one_to_one
+    sql_on:  ${gcp_billing_export.service__id} = ${eligible_labels.service_id} ;;
+  }
   
     join: gcp_billing_export__credits {
     sql:LEFT JOIN UNNEST(${gcp_billing_export.credits}) as gcp_billing_export__credits ;;
